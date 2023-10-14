@@ -6,6 +6,15 @@
 #include <sys/wait.h>
 
 
+struct job
+{
+    pid_t pid;
+    char* name;
+};
+
+struct job jobs[10];
+
+
 int getcmd(char *prompt, char *args[], int *background)
 {
     int length, i = 0;
@@ -44,15 +53,6 @@ int getcmd(char *prompt, char *args[], int *background)
 }
 
 
-struct job
-{
-    pid_t pid;
-    char* name;
-};
-
-struct job jobs[10];
-
-
 int main(void)
 {
     char *buffer;
@@ -70,7 +70,13 @@ int main(void)
         (2) the child process will invoke execvp()
         (3) if background is not specified, the parent will wait,
         otherwise parent starts the next command... */
-        //printf("the command is %s", args[0]);
+
+        /*
+        for (int i = 0; args[i] != NULL; i++) {
+            printf("%d", i);
+            printf("Argument %d: %s\n", i, args[i]);
+        }        
+        */
 
         pid_t child_pid;
         child_pid = fork();
@@ -82,28 +88,17 @@ int main(void)
         }
         else if (child_pid == 0)
         {
-            //printf("%s", args[0]);
             // This is the child process
-            if (strcmp(args[0], "ls") == 0)
-            {
-                system("ls");
-            }
-            else if (strcmp(args[0], "cat") == 0)
-            {
-                char* command;
-                sprintf(command, "cat %s", args[1]);
-                printf("hello %s", command);
-                int returnCode = system(command);
-            }
         }
         else
         {
             // This is the parent process
-            if (strcmp(args[0], "echo\n") == 0)
+            if (strcmp(args[0], "echo") == 0)
             {
                 for (int i = 1; args[i] != NULL; i++)
                     printf("%s ", args[i]);
                 printf("\n");
+                fflush(stdout);
             }
             else if (strcmp(args[0], "cd") == 0)
             {
@@ -116,16 +111,16 @@ int main(void)
             }
             else if (strcmp(args[0], "exit") == 0)
             {
-                char *args[20] = { NULL };
                 exit(0);
             }
             else if (strcmp(args[0], "jobs") == 0)
-            {
+            {                
                 for (int i = 1; i<10; i++)
                 {
                     printf("job %d is %s\n", i, jobs[i].name);
                 }
             }
+            wait(NULL);
         }
     }
 }
